@@ -27,7 +27,7 @@ if (isset($_SESSION["Id"])) {
 </head>
 
 <body>
-
+     
     <?php
     require_once './head.php';
     ?>
@@ -118,25 +118,25 @@ if (isset($_SESSION["Id"])) {
 
                     include('./display.php');
                 } else {
-                    $stmt = $pdo->prepare("SELECT * FROM ouvrage");
+                    $stmt = $pdo->prepare("SELECT MIN(id_ov) AS id_ov, titre_ov, auteur_ov, type_ov, etat_ov, dateEdt_ov, img_ov FROM ouvrage GROUP BY titre_ov");
                     $stmt->execute();
-                    $ouvrages = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    $ouvrages = $stmt->fetchAll(PDO::FETCH_ASSOC);        
                     $results_per_page = 12;
                     $total_results = count($ouvrages);
                     $total_pages = ($total_results > 0 && $results_per_page > 0) ? ceil($total_results / $results_per_page) : 1;
                     $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
                     $offset = ($page - 1) * $results_per_page;
-                    $stmt = $pdo->prepare("SELECT * FROM ouvrage LIMIT :offset, :limit");
+                    $stmt = $pdo->prepare("SELECT MIN(id_ov) AS id_ov, titre_ov, auteur_ov, type_ov, etat_ov, dateEdt_ov, img_ov FROM ouvrage GROUP BY titre_ov LIMIT :offset, :limit");
                     $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
                     $stmt->bindParam(':limit', $results_per_page, PDO::PARAM_INT);
                     $stmt->execute();
                     $ouvrages = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     include('./display.php');
-                    $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM ouvrage");
+                    $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM (SELECT MIN(id_ov), titre_ov, auteur_ov, type_ov, etat_ov, dateEdt_ov, img_ov FROM ouvrage GROUP BY titre_ov) as ouvrages");
                     $stmt->execute();
                     $total_results = $stmt->fetchColumn();
                     $total_pages = ceil($total_results / $results_per_page);
-
+                    
                     echo "</div>
                 <div class='pagination'>";
                     for ($i = 1; $i <= $total_pages; $i++) {
@@ -149,7 +149,26 @@ if (isset($_SESSION["Id"])) {
         </div>
     </div>
     <!-- Display end -->
-
+    <!-- <script>
+$(document).ready(function() {
+  $('.book-card-button').click(function() {
+    var titre = $(this).data('titre');
+    var modalBody = $('#exampleModal' + $(this).data('id') + ' .modal-body');
+    modalBody.html('<ul class="list-group"><li class="list-group-item">Chargement en cours...</li></ul>');
+    $.ajax({
+      url: 'fetch_books.php',
+      type: 'POST',
+      data: { titre: titre },
+      success: function(data) {
+        modalBody.html(data);
+      },
+      error: function() {
+        modalBody.html('<ul class="list-group"><li class="list-group-item">Une erreur est survenue.</li></ul>');
+      }
+    });
+  });
+});
+</script> -->
     <script>
        
         // SEARCH 
